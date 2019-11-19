@@ -1,1 +1,0 @@
-Write the instructions for playing your game in this file.
