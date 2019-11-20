@@ -9,11 +9,17 @@ HEIGHT = 10 * GRID_SIZE # 640
 TITLE = "My Awesome Game"
 FPS = 60
 
-WHITE = (255, 255, 255)
-LIGHT_GRAY = (200, 200, 200)
-DARK_GRAY = (100, 100, 100)
 BLACK = (0, 0, 0)
+DARK_GRAY = (100, 100, 100)
+LIGHT_GRAY = (200, 200, 200)
+WHITE = (255, 255, 255)
 
+TITLE_FONT = 'fonts/kenvector_future.ttf'
+DEFAULT_FONT = None
+FONT_SIZE_SM = 32
+FONT_SIZE_MD = 48
+FONT_SIZE_LG = 64
+FONT_SIZE_TITLE = 96
 
 P1_LOC = [3, 4]
 P1_IMG = 'images/man_gun.png'
@@ -47,9 +53,6 @@ GEM_LOCS = [[5, 5], [12, 2], [13, 3], [9, 5]]
 BULLET_IMG = 'images/bullet.png'
 BULLET_SPEED = 12
 
-TITLE_FONT = None
-NORMAL_FONT = None
-
 
 # Start pygame
 pygame.init()
@@ -59,6 +62,12 @@ clock = pygame.time.Clock()
 
 
 # Load assets
+''' fonts '''
+font_sm = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_SM)
+font_md = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_MD)
+font_lg = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_LG)
+font_title = pygame.font.Font(TITLE_FONT, FONT_SIZE_TITLE)
+
 ''' images '''
 p1_rt = pygame.image.load(P1_IMG).convert_alpha()
 p1_up = pygame.transform.rotate(p1_rt, 90)
@@ -170,13 +179,14 @@ class Character(pygame.sprite.Sprite):
             print('Oof')
 
     def die(self):
+        print("Aaaaaarrrrrgggg!!!")
         self.kill()
         
     def check_status(self):
         if self.health <= 0:
             self.die()
             
-    def update_image(self):
+    def set_image(self):
         center = self.rect.center
         self.image = self.images[self.direction]
         self.rect = self.image.get_rect()
@@ -204,7 +214,7 @@ class Character(pygame.sprite.Sprite):
                 self.shoot()
         
     def update(self):
-        self.update_image()
+        self.set_image()
         self.move()
         self.check_edges()
         self.check_items()
@@ -271,24 +281,23 @@ class Bullet(pygame.sprite.Sprite):
 
 
 # Debugging functions
-def draw_grid():
+def draw_grid(surface):
     for x in range(0, WIDTH, GRID_SIZE):
-        pygame.draw.line(window, LIGHT_GRAY, [x, 0], [x, HEIGHT], 1)
+        pygame.draw.line(surface, LIGHT_GRAY, [x, 0], [x, HEIGHT], 1)
     for y in range(0, HEIGHT, GRID_SIZE):
-        pygame.draw.line(window, LIGHT_GRAY, [0, y], [WIDTH, y], 1)
+        pygame.draw.line(surface, LIGHT_GRAY, [0, y], [WIDTH, y], 1)
 
-def draw_rects():
+def draw_rects(surface):
     all_sprites = pygame.sprite.Group()
     all_sprites.add(players, walls, items, bullets)
     for s in all_sprites:
-        pygame.draw.rect(window, LIGHT_GRAY, s.rect, 1)
+        pygame.draw.rect(surface, LIGHT_GRAY, s.rect, 1)
 
 
 # Game helper functions        
-def draw_text(surface, text, loc, size, color=(0,0,0), family=None, antialias=True, anchor='topleft'):
+def draw_text(surface, text, font, color, loc, anchor='topleft'):
     text = str(text)
-    font = pygame.font.Font(family, size)
-    text = font.render(text, antialias, color)
+    text = font.render(text, True, color)
     rect = text.get_rect()
 
     if   anchor == 'topleft'     : rect.topleft = loc
@@ -303,9 +312,9 @@ def draw_text(surface, text, loc, size, color=(0,0,0), family=None, antialias=Tr
     
     surface.blit(text, rect)
         
-def display_stats():
-    draw_text(window, p1.score, [24, 24], 48, WHITE, anchor='topleft')
-    draw_text(window, p2.score, [WIDTH - 24, 24], 48, WHITE, anchor='topright')
+def display_stats(surface):
+    draw_text(surface, p1.score, font_md, WHITE, [24, 24], anchor='topleft')
+    draw_text(surface, p2.score, font_md, WHITE, [WIDTH - 24, 24], anchor='topright')
 
 def setup():
     global p1, p2, players, walls, items, bullets
@@ -336,7 +345,7 @@ def setup():
         g = Gem(gem_img, x, y)
         items.add(g)
 
-
+    
 # Game loop
 def run():
     grid_on = False
@@ -373,10 +382,10 @@ def run():
         walls.draw(window)
         items.draw(window)
         bullets.draw(window)
-        display_stats()
+        display_stats(window)
         
-        if rect_on : draw_rects()
-        if grid_on : draw_grid()
+        if rect_on : draw_rects(window)
+        if grid_on : draw_grid(window)
 
         # Update display
         pygame.display.update()
