@@ -16,6 +16,7 @@ WHITE = (255, 255, 255)
 
 TITLE_FONT = 'fonts/kenvector_future.ttf'
 DEFAULT_FONT = None
+FONT_SIZE_XS = 16
 FONT_SIZE_SM = 32
 FONT_SIZE_MD = 48
 FONT_SIZE_LG = 64
@@ -63,6 +64,7 @@ clock = pygame.time.Clock()
 
 # Load assets
 ''' fonts '''
+font_xs = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_XS)
 font_sm = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_SM)
 font_md = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_MD)
 font_lg = pygame.font.Font(DEFAULT_FONT, FONT_SIZE_LG)
@@ -110,6 +112,27 @@ class Character(pygame.sprite.Sprite):
         self.max_health = PLAYER_MAX_HEALTH
 
         self.controls = controls
+
+    def process_input(self, keys_pressed, keydown_events):
+        self.vx = 0
+        self.vy = 0
+
+        if keys_pressed[ self.controls['up'] ]:
+            self.vy = -self.speed
+            self.direction = 0
+        elif keys_pressed[ self.controls['right'] ]:
+            self.vx = self.speed
+            self.direction = 1
+        elif keys_pressed[ self.controls['down'] ]:
+            self.vy = self.speed
+            self.direction = 2
+        elif keys_pressed[ self.controls['left'] ]:
+            self.vx = -self.speed
+            self.direction = 3
+
+        for event in keydown_events:
+            if event.key == self.controls['shoot']:
+                self.shoot()
 
     def move(self):
         self.rect.x += self.vx
@@ -191,27 +214,6 @@ class Character(pygame.sprite.Sprite):
         self.image = self.images[self.direction]
         self.rect = self.image.get_rect()
         self.rect.center = center
-
-    def process_input(self, keys_pressed, keydown_events):
-        self.vx = 0
-        self.vy = 0
-
-        if keys_pressed[ self.controls['up'] ]:
-            self.vy = -self.speed
-            self.direction = 0
-        elif keys_pressed[ self.controls['right'] ]:
-            self.vx = self.speed
-            self.direction = 1
-        elif keys_pressed[ self.controls['down'] ]:
-            self.vy = self.speed
-            self.direction = 2
-        elif keys_pressed[ self.controls['left'] ]:
-            self.vx = -self.speed
-            self.direction = 3
-
-        for event in keydown_events:
-            if event.key == self.controls['shoot']:
-                self.shoot()
         
     def update(self):
         self.set_image()
@@ -287,6 +289,11 @@ def draw_grid(surface):
     for y in range(0, HEIGHT, GRID_SIZE):
         pygame.draw.line(surface, LIGHT_GRAY, [0, y], [WIDTH, y], 1)
 
+    for x in range(0, WIDTH, GRID_SIZE):
+        for y in range(0, HEIGHT, GRID_SIZE):
+            coord = str(x // GRID_SIZE) + ", " + str(y // GRID_SIZE)
+            draw_text(surface, coord, font_xs, LIGHT_GRAY, [x+2, y+2])
+            
 def draw_rects(surface):
     all_sprites = pygame.sprite.Group()
     all_sprites.add(players, walls, items, bullets)
@@ -313,8 +320,8 @@ def draw_text(surface, text, font, color, loc, anchor='topleft'):
     surface.blit(text, rect)
         
 def display_stats(surface):
-    draw_text(surface, p1.score, font_md, WHITE, [24, 24], anchor='topleft')
-    draw_text(surface, p2.score, font_md, WHITE, [WIDTH - 24, 24], anchor='topright')
+    draw_text(surface, p1.score, font_md, WHITE, [24, 24], 'topleft')
+    draw_text(surface, p2.score, font_md, WHITE, [WIDTH - 24, 24], 'topright')
 
 def setup():
     global p1, p2, players, walls, items, bullets
@@ -346,7 +353,13 @@ def setup():
         items.add(g)
 
     
-# Game loop
+# Game stages
+def start():
+    pass
+
+def end():
+    pass
+
 def run():
     grid_on = False
     rect_on = False
@@ -390,8 +403,8 @@ def run():
         # Update display
         pygame.display.update()
         clock.tick(FPS)
-
-
+        
+    
 # Go!
 if __name__ == "__main__":
     setup()
